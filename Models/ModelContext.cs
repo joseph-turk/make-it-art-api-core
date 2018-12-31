@@ -9,6 +9,7 @@ namespace MakeItArtApi.Models
         {
         }
 
+        public DbSet<User> Users { get; set; }
         public DbSet<Artwork> Artworks { get; set; }
 
         // protected override void OnModelCreating(ModelBuilder modelBuilder)

@@ -11,6 +11,7 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using MakeItArtApi.Models;
 using MakeItArtApi.Services;
+using Microsoft.AspNetCore.Authorization;
 
 namespace MakeItArtApi.Controllers
 {
@@ -47,6 +48,7 @@ namespace MakeItArtApi.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public async Task<ActionResult> Create()
         {
             if (!Request.HasFormContentType) return BadRequest();
@@ -121,6 +123,7 @@ namespace MakeItArtApi.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize]
         public async Task<ActionResult> Update(int id, [FromBody] Artwork artwork)
         {
             var existingArtwork = await _context.Artworks.FindAsync(id);
@@ -141,6 +144,7 @@ namespace MakeItArtApi.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize]
         public async Task<ActionResult> Delete(int id)
         {
             var existingArtwork = await _context.Artworks.FindAsync(id);
