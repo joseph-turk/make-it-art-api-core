@@ -34,7 +34,7 @@ namespace MakeItArtApi.Controllers
         [HttpPost("authenticate")]
         public IActionResult Authenticate([FromBody] UserDto userDto)
         {
-            var user = _userService.Authenticate(userDto.Email, userDto.Password);
+            var user = _userService.Authenticate(userDto.Username, userDto.Password);
 
             if (user == null)
             {
