@@ -2,11 +2,13 @@ using System.Threading.Tasks;
 using System.Linq;
 using MakeItArtApi.Models;
 using MakeItArtApi.Services;
+using MakeItArtApi.Dtos;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using System;
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Http;
 using System.IO;
 using SixLabors.ImageSharp;
@@ -32,14 +34,60 @@ namespace MakeItArtApi.Controllers
         [HttpGet]
         public async Task<ActionResult> GetAll()
         {
-            var events = await _context.Events.ToListAsync();
+            List<EventDto> events = await _context.Events.Select(e => new EventDto
+            {
+                Id = e.Id,
+                Name = e.Name,
+                Description = e.Description,
+                Start = e.Start,
+                End = e.End,
+                Capacity = e.Capacity,
+                ImageId = e.ImageId,
+                ImageExtension = e.ImageExtension,
+                IsFull = e.Registrations.Where(r => !r.IsWaitList).Count() >= e.Capacity,
+                RegistrationCount = e.Registrations.Where(r => !r.IsWaitList).Count(),
+                WaitListCount = e.Registrations.Where(r => r.IsWaitList).Count()
+            }).ToListAsync();
+
             return Ok(events);
         }
 
         [HttpGet("{id}", Name = "GetEvent")]
         public async Task<ActionResult> GetById(int id)
         {
-            var singleEvent = await _context.Events.FindAsync(id);
+            var singleEvent = await _context.Events
+                .Where(e => e.Id.Equals(id))
+                .Select(e => new EventDto
+                {
+                    Id = e.Id,
+                    Name = e.Name,
+                    Description = e.Description,
+                    Start = e.Start,
+                    End = e.End,
+                    Capacity = e.Capacity,
+                    ImageId = e.ImageId,
+                    ImageExtension = e.ImageExtension,
+                    IsFull = e.Registrations.Where(r => !r.IsWaitList).Count() >= e.Capacity,
+                    RegistrationCount = e.Registrations.Where(r => !r.IsWaitList).Count(),
+                    WaitListCount = e.Registrations.Where(r => r.IsWaitList).Count()
+                })
+                .FirstAsync();
+
+            if (singleEvent == null) return NotFound();
+
+            return Ok(singleEvent);
+        }
+
+        [HttpGet("{id}/with-registrations")]
+        public async Task<ActionResult> GetByIdWithRegistrations(int id)
+        {
+            var singleEvent = await _context.Events
+                .Where(e => e.Id.Equals(id))
+                .Include(e => e.Registrations)
+                .ThenInclude(r => r.Registrant)
+                .Include(e => e.Registrations)
+                .ThenInclude(r => r.PrimaryContact)
+                .FirstAsync();
 
             if (singleEvent == null) return NotFound();
 
